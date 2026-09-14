@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="zh-CN" data-page-node-id="w788ouBgCTJdRnCQaGVZ4p">
+<head data-page-node-id="gwZvO6FIhU3q3YMvFgopDx">
+<meta charset="utf-8" data-page-node-id="QlC8iAVvaAFLh8XCFj6Yv7">
+<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="Mn8cS8SRaTv0s8ql2JYtQE">
 <title>Screen List Capturer — 演示</title>
-<meta name="description" content="把屏幕上任何列表变成表格 —— 不写一行爬虫。Screen List Capturer 演示视频。">
+<meta name="description" content="把屏幕上任何列表变成表格 —— 不写一行爬虫。Screen List Capturer 演示视频。" data-page-node-id="wQKoAMHwQ9kxT6g1HvzoPb">
 <style>
   :root{
     --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --line:#d0d7de;
@@ -49,49 +49,49 @@
   footer a{color:var(--accent)}
 </style>
 </head>
-<body>
-<div class="wrap">
+<body data-page-node-id="m5py5peM5wgyxJmIOtyjmd">
+<div class="wrap" data-page-node-id="KTKx3l5oooA1Fim1amgSFP">
 
-  <h1>Screen List Capturer</h1>
-  <p class="tagline">把屏幕上任何列表变成表格 —— <strong>不写一行爬虫</strong>。</p>
+  <h1 data-page-node-id="iThSufJsIPNHLoCy6C1kPJ">Screen List Capturer</h1>
+  <p class="tagline" data-page-node-id="BdAu0YG6bbcNrP0dMEmyBW">把屏幕上任何列表变成表格 —— <strong data-page-node-id="g52BNyEFu9SHNRk14Jwbjq">不写一行爬虫</strong>。</p>
 
-  <video id="demo" controls playsinline preload="metadata" poster="poster.jpg">
-    <source src="demo.mp4" type="video/mp4">
-    你的浏览器不支持 HTML5 视频，请<a href="demo.mp4">下载 MP4</a>观看。
+  <video id="demo" controls playsinline preload="metadata" poster="poster.jpg" data-page-node-id="canJ1fBJtcgHrweOiqZaHU">
+    <source src="demo.mp4" type="video/mp4" data-page-node-id="a2VhvfRA6nbKUoWVAe35eP">
+    你的浏览器不支持 HTML5 视频，请<a href="demo.mp4" data-page-node-id="oHwPvyvlUBCtKACMIKaoyM">下载 MP4</a>观看。
   </video>
-  <p class="meta">1 分 09 秒 · 1920×1172 · MP4 7.7 MB · 无音轨 · 在 macOS 上实录</p>
+  <p class="meta" data-page-node-id="tYsQtNE7KWAQrQwQf2ceu1">1 分 09 秒 · 1920×1172 · MP4 7.7 MB · 无音轨 · 在 macOS 上实录</p>
 
-  <p class="note">
+  <p class="note" data-page-node-id="rybraa9SI1H9joj90FPM8G">
     这段视频没有被压缩成 GIF，是原始画质 —— 界面上的日志可以逐字看清，
     支持拖动进度、倍速和全屏。
   </p>
 
-  <h2>关键时间点</h2>
-  <ul class="chapters">
-    <li><a href="demo.mp4#t=30" data-seek="30">00:30 &nbsp;列表到底，工具自己停下</a> —— 日志出现「滚轮请求 490px / 实滚 0px → 视为已到达列表末端」，并且这一帧不再保存</li>
+  <h2 data-page-node-id="w8Ca1qXMrkjqkhawdt20gV">关键时间点</h2>
+  <ul class="chapters" data-page-node-id="2vkaUmX5vmnJFqQsVKHs91">
+    <li data-page-node-id="Ai29jBGAABrHNCXVO2H3cG"><a href="demo.mp4#t=30" data-seek="30" data-page-node-id="OsFfnEKyBTAFsU6KAknCVS">00:30 &nbsp;列表到底，工具自己停下</a> —— 日志出现「滚轮请求 490px / 实滚 0px → 视为已到达列表末端」，并且这一帧不再保存</li>
   </ul>
 
-  <h2>画面里在发生什么</h2>
-  <ol>
-    <li><strong>标定</strong>：倒计时引导点出列表的左上角和右下角，屏幕上其他东西都不影响。</li>
-    <li><strong>自动滚动 + 逐屏截图</strong>：小批量发送滚轮事件，每批用截图测出真实位移，不够就补发。</li>
-    <li><strong>到底判定</strong>：每帧和上一帧做灰度比对（允许几个像素的纵向位移，避开弹性滚动回弹），画面不再变化就立刻停止。</li>
-    <li><strong>打包</strong>：截图打包成 zip，配一份可直接粘贴给视觉大模型的提示词。</li>
+  <h2 data-page-node-id="B9K6JHotDrOei3dYrtkKQV">画面里在发生什么</h2>
+  <ol data-page-node-id="4lmbphGZyWVpvAVsDqxC8V">
+    <li data-page-node-id="F3K2iTMCbGSbCo2sgRknpN"><strong data-page-node-id="BLV5TwIF5ptyusBjpq5Kel">标定</strong>：倒计时引导点出列表的左上角和右下角，屏幕上其他东西都不影响。</li>
+    <li data-page-node-id="qrCnNVJzLHGBF5nxSPi1RQ"><strong data-page-node-id="AaBWu8gunHzrmoMFwAxeKz">自动滚动 + 逐屏截图</strong>：小批量发送滚轮事件，每批用截图测出真实位移，不够就补发。</li>
+    <li data-page-node-id="egPpQxd9xuuas2vSBCHWOY"><strong data-page-node-id="QQN67Gf4qFC0AjftiNxuVZ">到底判定</strong>：每帧和上一帧做灰度比对（允许几个像素的纵向位移，避开弹性滚动回弹），画面不再变化就立刻停止。</li>
+    <li data-page-node-id="VRFJuRlCRgvlZJxtv7Q6ic"><strong data-page-node-id="gHfz4plUGCW627BQVT0Gm1">打包</strong>：截图打包成 zip，配一份可直接粘贴给视觉大模型的提示词。</li>
   </ol>
 
-  <h2>装起来</h2>
-  <pre><code>git clone https://github.com/m2290526022-boop/screen-list-capturer.git
+  <h2 data-page-node-id="ujcsWH60U1TwlI5LlbGsny">装起来</h2>
+  <pre data-page-node-id="Uw828Y0T7ulf6rsNgG0m5k"><code data-page-node-id="pIQFDTVQ9vBUSmLPIUfRg0">git clone https://github.com/m2290526022-boop/screen-list-capturer.git
 cd screen-list-capturer
 pip install -r requirements.txt
 python screen_list_capturer.py</code></pre>
 
-  <div class="links">
-    <a class="btn" href="https://github.com/m2290526022-boop/screen-list-capturer">GitHub 仓库</a>
-    <a class="btn" href="https://github.com/m2290526022-boop/screen-list-capturer#readme">完整说明（README）</a>
-    <a class="btn" href="demo.mp4">下载 MP4</a>
+  <div class="links" data-page-node-id="DDOvc1gbruypKmRUKsWYFR">
+    <a class="btn" href="https://github.com/m2290526022-boop/screen-list-capturer" data-page-node-id="J43Q1NM7QQOEHq0CBEelGw">GitHub 仓库</a>
+    <a class="btn" href="https://github.com/m2290526022-boop/screen-list-capturer#readme" data-page-node-id="uSRmVGKhyXdcETUE85ZPBU">完整说明（README）</a>
+    <a class="btn" href="demo.mp4" data-page-node-id="pU1WjYQW1YTuwifLzE80CM">下载 MP4</a>
   </div>
 
-  <footer>
+  <footer data-page-node-id="tE1zhwVQYsdhdMzQeVfJKu">
     只用于你自己的屏幕、自己的账号、以及你有权采集的数据。MIT 协议。
   </footer>
 
