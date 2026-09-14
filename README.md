@@ -35,8 +35,9 @@
 已保存 7 页 -> page_007.png
 ```
 
-> 上面这段 GIF 压到了 720px / 8fps，界面小字会糊。想要逐字可读的原画质：
-> [▶ 完整版 MP4（7.7 MB）](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
+> 上面这段 GIF 压到了 720px / 8fps，界面小字会糊。原画质可以在浏览器里直接播
+> （可拖进度、倍速、全屏）：**[▶ 演示页](https://m2290526022-boop.github.io/screen-list-capturer/)**
+> ｜ [下载 MP4（7.7 MB）](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
 
 ---
 

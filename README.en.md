@@ -38,8 +38,10 @@ wheel: asked 490pt, moved 0pt  -> treated as end of list
 saved 7 pages -> page_007.png
 ```
 
-> The GIF above is 720px / 8fps, so small UI text is blurry. For a
-> pixel-readable original: [▶ full MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
+> The GIF above is 720px / 8fps, so small UI text is blurry. The original plays
+> straight in the browser (seek, speed, fullscreen):
+> **[▶ Demo page](https://m2290526022-boop.github.io/screen-list-capturer/)**
+> | [download MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
 
 ## How it works
 
