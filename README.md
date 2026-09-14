@@ -23,7 +23,12 @@
 
 ## 演示
 
-[▶ 看演示视频（1 分 09 秒，MP4，7.7 MB）](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
+<p align="center">
+  <a href="https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4">
+    <img src="media/demo_cover.png" alt="点击播放演示视频" width="880">
+  </a>
+  <br><b>▶ 点击封面播放演示视频</b>（1 分 09 秒，MP4，7.7 MB）
+</p>
 
 在 macOS 上对着一个没有接口的小程序列表实录。画面里能看到：标定区域 → 自动滚动、
 逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
