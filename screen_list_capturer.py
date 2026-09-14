@@ -51,7 +51,7 @@ except ImportError:
 
 try:
     import pyautogui
-    from PIL import Image, ImageGrab, ImageTk
+    from PIL import Image, ImageChops, ImageGrab, ImageStat, ImageTk
 except ImportError as e:
     sys.exit(f"Missing dependency: {e}\nRun: pip install -r requirements.txt")
 
@@ -63,6 +63,20 @@ CAPTURE_SECONDS = 5        # countdown before each calibration point is recorded
 SCROLL_PAUSE = 1.5         # seconds to wait for the list to settle after scrolling
 MAX_PAGES = 200            # hard cap on pages, to avoid an endless loop
 DEFAULT_OVERLAP = 50       # % of the region kept as overlap between two pages
+
+# End-of-list detection. Consecutive pages are compared in grayscale, allowing
+# for a vertical offset of up to MAX_SHIFT px (scroll bounce / elastic overscroll
+# moves the whole page by a few pixels without showing anything new).
+# The value is the mean per-pixel difference, 0-255, measured on a 64x64 downscale:
+#   < DIFF_IDENTICAL : nothing moved at all      -> stop immediately
+#   < DIFF_NEAR      : only jitter / bounce      -> not saved, stop after NEAR_LIMIT
+#   >= DIFF_NEAR     : real new content          -> save and keep going
+# Measured separation on synthetic lists: jitter ~0.0, a real new page ~27.
+DIFF_IDENTICAL = 1.0
+DIFF_NEAR = 6.0
+NEAR_LIMIT = 2
+MAX_SHIFT = 4
+SETTLE_SECONDS = 1.0   # extra wait before confirming a page "did not change"
 
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 PAGES_DIR = os.path.join(OUTPUT_DIR, "pages")
@@ -359,40 +373,75 @@ class ListCapturerApp:
     def _stage1_worker(self, scroll_dist, method, area_h):
         cx = (self.region_tl[0] + self.region_br[0]) // 2
         cy = (self.region_tl[1] + self.region_br[1]) // 2
-        prev_bottom_hash = None
-        unchanged = 0
+        prev_img = None
+        near_count = 0
+        fail_count = 0
         page_idx = 0
+
+        def scroll_and_wait():
+            self._scroll(cx, cy, scroll_dist, method, area_h)
+            time.sleep(SCROLL_PAUSE)
 
         try:
             while page_idx < MAX_PAGES and not self.stop_flag:
-                page_idx += 1
                 img = self._capture_region()
                 if img is None:
-                    self.log("Capture failed, skipping this page")
+                    fail_count += 1
+                    if fail_count >= 5:
+                        self.log("Capture failed 5 times in a row — aborting.")
+                        break
+                    scroll_and_wait()
+                    continue
+                fail_count = 0
+
+                # end-of-list detection: compare against the previous screen
+                if prev_img is not None:
+                    diff = self._frame_diff(prev_img, img)
+                    if diff is not None and diff < DIFF_NEAR:
+                        # could be mid-bounce — let it settle and look again
+                        time.sleep(SETTLE_SECONDS)
+                        settled = self._capture_region()
+                        if settled is not None:
+                            diff2 = self._frame_diff(prev_img, settled)
+                            if diff2 is not None and diff2 >= DIFF_NEAR:
+                                self.log("  bounce settled into new content")
+                                img, diff = settled, diff2
+                    if diff is not None:
+                        self.log(f"  change vs previous page: {diff:.2f}")
+                        if diff < DIFF_IDENTICAL:
+                            if page_idx <= 1:
+                                self.log("Nothing moved after the first scroll — check "
+                                         "scroll mode and macOS Accessibility permission.")
+                            else:
+                                self.log("Page unchanged after scrolling — end of list reached.")
+                            break
+                        if diff < DIFF_NEAR:
+                            near_count += 1
+                            self.log(f"  near-identical page {near_count}/{NEAR_LIMIT} — not saved")
+                            if near_count >= NEAR_LIMIT:
+                                self.log("Content stopped changing — end of list reached.")
+                                break
+                        else:
+                            near_count = 0
+
+                if near_count:
+                    # only jitter or scroll bounce — keep going, but do not save it
+                    prev_img = img
+                    scroll_and_wait()
                     continue
 
+                page_idx += 1
                 path = os.path.join(PAGES_DIR, f"page_{page_idx:03d}.png")
                 img.save(path)
                 self.page_count = page_idx
                 self.root.after(0, lambda i=img: self._show_image(i))
                 self.root.after(0, self._set_stage_label, f"{page_idx} pages")
                 self.log(f"Saved page {page_idx} -> {os.path.basename(path)}")
-
-                # stop when the bottom strip stops changing (= end of list)
-                cur_hash = self._bottom_hash(img)
-                if cur_hash is not None and cur_hash == prev_bottom_hash:
-                    unchanged += 1
-                else:
-                    unchanged = 0
-                prev_bottom_hash = cur_hash
-                if page_idx > 3 and unchanged >= 3:
-                    self.log("Bottom unchanged for 3 pages — end of list reached.")
-                    break
+                prev_img = img
 
                 if self.stop_flag or page_idx >= MAX_PAGES:
                     break
-                self._scroll(cx, cy, scroll_dist, method, area_h)
-                time.sleep(SCROLL_PAUSE)
+                scroll_and_wait()
 
             self.log(f"Capture finished: {page_idx} pages in {PAGES_DIR}")
             self.root.after(0, self._set_stage_label, f"captured {page_idx}")
@@ -410,12 +459,29 @@ class ListCapturerApp:
     def _set_stage_label(self, text):
         self.lbl_stage.config(text=text)
 
-    def _bottom_hash(self, img):
-        """Hash the bottom 35% of the image to detect 'no more content'."""
+    def _frame_diff(self, a, b):
+        """Mean per-pixel difference between two pages, 0-255.
+
+        The best (smallest) difference over vertical offsets in
+        [-MAX_SHIFT, MAX_SHIFT] is returned, so a scroll bounce that shifts the
+        whole page by a few pixels reads as ~0 while a genuinely new page of
+        content stays high. Returns None if the frames cannot be compared.
+        """
         try:
-            strip = img.convert("L").crop(
-                (0, int(img.height * 0.65), img.width, img.height))
-            return strip.resize((32, 8)).tobytes()
+            ga, gb = a.convert("L"), b.convert("L")
+            w, h = ga.size
+            margin = MAX_SHIFT
+            if h <= 2 * margin + 8:
+                return None
+            best = None
+            for dy in range(-MAX_SHIFT, MAX_SHIFT + 1):
+                ca = ga.crop((0, margin, w, h - margin))
+                cb = gb.crop((0, margin + dy, w, h - margin + dy))
+                ca = ca.resize((64, 64))
+                cb = cb.resize((64, 64))
+                diff = ImageStat.Stat(ImageChops.difference(ca, cb)).mean[0]
+                best = diff if best is None else min(best, diff)
+            return best
         except Exception:  # noqa: BLE001
             return None
 

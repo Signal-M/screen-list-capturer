@@ -39,8 +39,24 @@ scroll through, this can capture.
 5. Convert     python csv_to_xlsx.py llm_output.csv
 ```
 
-Stop detection is automatic: when the bottom strip of the image stops changing
-for three consecutive pages, the capture ends.
+### Stop detection
+
+Every frame is compared with the previous one in grayscale, allowing for a few
+pixels of vertical offset so that elastic-scroll bounce does not read as new
+content. When the screen stops changing, capture ends immediately and the
+unchanged frame is **not saved**. A near-identical frame (bounce in progress)
+triggers one extra settle-and-recheck before being judged.
+
+Measured separation on synthetic lists: jitter ≈ 0.0, a real new page ≈ 27
+(mean per-pixel difference on a 64×64 downscale).
+
+If scrolling has no effect at all, it stops after the first page and says so —
+usually a permissions or scroll-mode problem. Run the simulation without a
+display:
+
+```bash
+python tests/test_capture_loop.py
+```
 
 ## Install
 
@@ -89,6 +105,8 @@ Honest list of what this does *not* do:
   model's. Small text and dense layouts still trip it up.
 - **No dedup across pages.** Overlap means the same item can appear on two
   pages; the prompt tells the model to list everything, so dedupe afterwards.
+  A large scroll bounce at the very bottom can leave one extra duplicate frame —
+  kept on purpose, because dropping a real page would be worse.
 - **Fixed region.** If the list's position changes while scrolling (e.g. a
   sticky header that resizes), recalibrate.
 - **You must watch it once.** `pyautogui` FailSafe aborts if you throw the
