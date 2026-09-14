@@ -78,8 +78,18 @@ terminal (or Python launcher):
 - **System Settings → Privacy & Security → Accessibility**
 - **System Settings → Privacy & Security → Screen Recording**
 
-HiDPI / Retina displays are handled: the scale factor is detected automatically
-and the capture box is converted from points to pixels.
+HiDPI / Retina displays need no setup: the capture box uses logical points (the
+same units the mouse uses) and screenshots come back at 2x resolution.
+
+### Why the wheel needs bursts
+
+`pyautogui.scroll()` takes wheel *units*, not pixels, and its own source warns
+that values outside roughly ±10 per event have application-dependent results —
+one huge event gets merged into a single gesture or truncated, which is why
+raising the pixel setting never helped. The tool sends small bursts instead,
+measures how far the page actually moved from the screenshots, and tops up
+until the requested distance is covered. Each page logs what it asked for and
+what it actually got.
 
 ### Windows / Linux
 

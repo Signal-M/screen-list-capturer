@@ -25,8 +25,9 @@ Requirements
 
 macOS: grant Accessibility (to move the mouse / scroll) and Screen Recording
 (to capture screenshots) permissions to your terminal or Python launcher.
-On HiDPI/Retina displays the tool auto-detects the scale factor and converts
-coordinates for you.
+On HiDPI/Retina displays nothing special is needed: the capture box is given in
+logical points (the same units the mouse uses) and the screenshots simply come
+back at 2x resolution.
 
 Usage
 -----
@@ -77,6 +78,18 @@ DIFF_NEAR = 6.0
 NEAR_LIMIT = 2
 MAX_SHIFT = 4
 SETTLE_SECONDS = 1.0   # extra wait before confirming a page "did not change"
+MOVE_DIFF_MAX = 20.0   # residual above which two frames are not "the same content shifted"
+SHIFT_WINDOW_FRAC = 0.45   # height of the comparison window used to measure a shift
+
+# Wheel scrolling. pyautogui.scroll() takes wheel units, not pixels, and its own
+# source warns that values outside roughly -10..10 per event have
+# application-dependent results — dumping one huge event at WeChat gets merged
+# into a single gesture or truncated. So: send small bursts, measure how far the
+# page actually moved from the screenshots, and top up until the target is met.
+WHEEL_UNITS_PER_BURST = 5
+WHEEL_UNITS_MAX = 10
+WHEEL_SETTLE = 0.35
+WHEEL_MAX_BURSTS = 25
 
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 PAGES_DIR = os.path.join(OUTPUT_DIR, "pages")
@@ -146,7 +159,6 @@ class ListCapturerApp:
         self.is_running = False
         self.stop_flag = False
         self.page_count = 0
-        self.scale = 1.0            # HiDPI / Retina scale factor
 
         # calibration state machine, driven by Tk's after() loop
         self._calib_state = None    # None / "tl" / "br"
@@ -284,21 +296,8 @@ class ListCapturerApp:
             return
         w = self.region_br[0] - self.region_tl[0]
         h = self.region_br[1] - self.region_tl[1]
-        self._detect_scale()
         self.log(f"Region ready: {w}x{h} points")
         self._test_capture()
-
-    def _detect_scale(self):
-        """On HiDPI screens the screenshot pixel grid is larger than the logical
-        point grid used by mouse coordinates. Cache the ratio once."""
-        try:
-            full = ImageGrab.grab()
-            self.scale = round(full.width / float(pyautogui.size().width), 3) or 1.0
-        except Exception as e:  # noqa: BLE001
-            self.log(f"Scale detection failed, assuming 1x: {e}")
-            self.scale = 1.0
-        if self.scale > 1.0:
-            self.log(f"HiDPI display detected ({self.scale}x) — capture box scaled accordingly.")
 
     # ── capture ──
     def _capture_region(self):
@@ -306,9 +305,11 @@ class ListCapturerApp:
         if not self.region_tl or not self.region_br:
             return None
         try:
-            s = self.scale
-            bbox = (int(self.region_tl[0] * s), int(self.region_tl[1] * s),
-                    int(self.region_br[0] * s), int(self.region_br[1] * s))
+            # ImageGrab.grab() takes logical points (verified on macOS Retina:
+            # it returns a 2x pixel image for a logical box), so the calibrated
+            # point coordinates can be passed straight through.
+            bbox = (self.region_tl[0], self.region_tl[1],
+                    self.region_br[0], self.region_br[1])
             return ImageGrab.grab(bbox=bbox)
         except Exception as e:  # noqa: BLE001
             self.log(f"Capture failed: {e}")
@@ -485,11 +486,97 @@ class ListCapturerApp:
         except Exception:  # noqa: BLE001
             return None
 
+    def _best_shift(self, a, b, max_dy=None):
+        """How many pixels b is scrolled up relative to a.
+
+        Uses a fixed-size window anchored at the top of the frame, so no dy is
+        favoured by stretching. Returns (dy, residual); dy is 0 when the frames
+        are not the same content shifted.
+        """
+        try:
+            ga, gb = a.convert("L"), b.convert("L")
+            w, h = ga.size
+            win = max(16, int(h * SHIFT_WINDOW_FRAC))
+            search_max = h - win
+            if win < 16 or search_max < 1:
+                return 0, None
+            if max_dy is None:
+                max_dy = search_max
+            max_dy = max(0, min(max_dy, search_max))
+
+            def score(dy):
+                if dy < 0 or dy > search_max:
+                    return None
+                ca = ga.crop((0, dy, w, dy + win)).resize((96, 160))
+                cb = gb.crop((0, 0, w, win)).resize((96, 160))
+                return ImageStat.Stat(ImageChops.difference(ca, cb)).mean[0]
+
+            best_diff = score(0)
+            best_dy = 0
+            for dy in range(0, max_dy + 1, 8):                    # coarse
+                d = score(dy)
+                if d is not None and d < best_diff:
+                    best_diff, best_dy = d, dy
+            for dy in range(max(0, best_dy - 8),                   # refine
+                            min(max_dy, best_dy + 8) + 1):
+                d = score(dy)
+                if d is not None and d < best_diff:
+                    best_diff, best_dy = d, dy
+            if best_diff is not None and best_diff > MOVE_DIFF_MAX:
+                return 0, best_diff
+            return best_dy, best_diff
+        except Exception:  # noqa: BLE001
+            return 0, None
+
+    def _wheel_scroll_to(self, cx, cy, target_px):
+        """Scroll about target_px points; return how far it actually scrolled.
+
+        Screenshots are in physical pixels while the target is in points, so the
+        measured shift is converted back with the same ratio.
+        """
+        pyautogui.moveTo(cx, cy)
+        time.sleep(0.2)
+        prev = self._capture_region()
+        if prev is None:
+            pyautogui.scroll(-WHEEL_UNITS_PER_BURST)
+            return 0.0
+
+        moved = 0.0
+        units_total = 0
+        px_per_unit = None
+        for i in range(WHEEL_MAX_BURSTS):
+            if target_px - moved <= 8:
+                break
+            units = (WHEEL_UNITS_PER_BURST if not px_per_unit
+                     else max(1, min(WHEEL_UNITS_MAX,
+                                     int((target_px - moved) / px_per_unit))))
+            pyautogui.scroll(-units)
+            units_total += units
+            time.sleep(WHEEL_SETTLE)
+            now = self._capture_region()
+            if now is None:
+                break
+            dy, _ = self._best_shift(prev, now)
+            if dy <= 0:
+                self.log(f"  wheel burst {i + 1}: no movement — end of list or "
+                         "the app ignored the event")
+                break
+            scale = max(1.0, now.width / float(max(1, self.region_br[0] - self.region_tl[0])))
+            moved += dy / scale
+            prev = now
+            px_per_unit = max(1.0, moved / float(units_total))
+
+        self.log(f"  wheel: asked {target_px:.0f}pt, moved {moved:.0f}pt "
+                 f"({units_total} units)")
+        return moved
+
     def _scroll(self, cx, cy, dist, method, area_h):
         if method == "Wheel":
-            pyautogui.moveTo(cx, cy)
-            time.sleep(0.2)
-            pyautogui.scroll(-dist)
+            moved = self._wheel_scroll_to(cx, cy, dist)
+            if moved <= 0:
+                for _ in range(3):                 # last resort, in bursts
+                    pyautogui.scroll(-WHEEL_UNITS_MAX)
+                    time.sleep(WHEEL_SETTLE)
         else:
             # drag up, keeping both endpoints inside the region
             safe = min(dist, max(60, area_h - 40))

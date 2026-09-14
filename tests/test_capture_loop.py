@@ -78,7 +78,6 @@ def run(build_feed, label, expected):
     app.stop_flag = False
     app.is_running = True
     app.page_count = 0
-    app.scale = 1.0
     app._show_image = lambda img: None
     app._scroll = lambda *a, **k: None
 
