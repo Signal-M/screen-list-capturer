@@ -2,21 +2,45 @@
 
 **Turn any on-screen list into a spreadsheet — without writing a scraper.**
 
-Mark a region once. The tool auto-scrolls, screenshots every screen, packs them
-into a zip, and hands you a ready-to-paste prompt. You feed both to any
-vision-capable LLM; it returns CSV; one command turns that into `.xlsx`.
+Some lists are unreachable by code: a mini program, a native app, an Electron
+client, a page behind a login. Reverse-engineering their APIs is slow and breaks
+on every release. This tool goes the other way — it works on **pixels instead of
+protocols**. Mark a region once, and it scrolls the list for you, screenshots
+every screen, and packs them with a ready-to-paste prompt for a vision LLM.
 
-[中文说明](./README.zh-CN.md)
+You get a structured CSV out of a UI that has no API you can use.
 
----
+```
+list on screen  ->  pages/page_001.png ...  ->  pages.zip + LLM_PROMPT.md  ->  CSV  ->  .xlsx
+```
+
+**Who it is for:** anyone who needs a table out of an app they don't control —
+product research, price collection, migrating your own data out of a tool that
+won't let you export, building a test fixture that actually looks like production.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["1 · Calibrate<br/>point at the list corners"] --> B["2 · Capture<br/>auto-scroll + screenshot"]
+    B --> C["3 · Pack<br/>pages.zip + LLM_PROMPT.md"]
+    C --> D["4 · Extract<br/>any vision LLM reads the pages"]
+    D --> E["5 · Convert<br/>csv_to_xlsx.py"]
+```
+
+1. **Calibrate** — a countdown walks you through the top-left and bottom-right
+   corner of the list. Nothing else on screen matters.
+2. **Capture** — the tool scrolls, waits for the list to settle, and saves one
+   PNG per screen into `pages/`. It stops on its own when the list stops moving.
+3. **Pack** — the screenshots are zipped and paired with `LLM_PROMPT.md`, a
+   prompt that tells the model exactly which fields to pull and what not to
+   invent. The prompt is also copied to your clipboard.
+4. **Extract** — hand the zip and the prompt to any vision-capable LLM. It
+   returns CSV.
+5. **Convert** — `python csv_to_xlsx.py llm_output.csv` produces a formatted
+   spreadsheet.
 
 ## Why not just scrape it?
-
-Because a lot of lists live somewhere you cannot reach with code: a WeChat mini
-program, a native app, an Electron client, a page behind login. Reverse
-engineering their APIs is slow and breaks on every release.
-
-This tool takes the opposite route — it works on pixels instead of protocols:
 
 | | DOM / API scraper | Screen List Capturer |
 |---|---|---|
@@ -28,35 +52,6 @@ This tool takes the opposite route — it works on pixels instead of protocols:
 
 The trade-off is deliberate: you trade exactness for reach. Anything a human can
 scroll through, this can capture.
-
-## How it works
-
-```
-1. Calibrate   point at the top-left and bottom-right of the list (countdown guided)
-2. Capture     auto-scroll + screenshot -> pages/page_001.png, page_002.png ...
-3. Pack        pages.zip + LLM_PROMPT.md (prompt also copied to clipboard)
-4. Extract     upload the zip + prompt to any vision LLM -> CSV
-5. Convert     python csv_to_xlsx.py llm_output.csv
-```
-
-### Stop detection
-
-Every frame is compared with the previous one in grayscale, allowing for a few
-pixels of vertical offset so that elastic-scroll bounce does not read as new
-content. When the screen stops changing, capture ends immediately and the
-unchanged frame is **not saved**. A near-identical frame (bounce in progress)
-triggers one extra settle-and-recheck before being judged.
-
-Measured separation on synthetic lists: jitter ≈ 0.0, a real new page ≈ 27
-(mean per-pixel difference on a 64×64 downscale).
-
-If scrolling has no effect at all, it stops after the first page and says so —
-usually a permissions or scroll-mode problem. Run the simulation without a
-display:
-
-```bash
-python tests/test_capture_loop.py
-```
 
 ## Install
 
@@ -78,23 +73,44 @@ terminal (or Python launcher):
 - **System Settings → Privacy & Security → Accessibility**
 - **System Settings → Privacy & Security → Screen Recording**
 
-HiDPI / Retina displays need no setup: the capture box uses logical points (the
+HiDPI / Retina displays need no setup: the capture box takes logical points (the
 same units the mouse uses) and screenshots come back at 2x resolution.
-
-### Why the wheel needs bursts
-
-`pyautogui.scroll()` takes wheel *units*, not pixels, and its own source warns
-that values outside roughly ±10 per event have application-dependent results —
-one huge event gets merged into a single gesture or truncated, which is why
-raising the pixel setting never helped. The tool sends small bursts instead,
-measures how far the page actually moved from the screenshots, and tops up
-until the requested distance is covered. Each page logs what it asked for and
-what it actually got.
 
 ### Windows / Linux
 
 Works as-is. On Linux, `scrot` or `gnome-screenshot` may be needed for
 `ImageGrab` to function.
+
+## How it decides the list has ended
+
+Every frame is compared with the previous one in grayscale, allowing a few
+pixels of vertical offset so elastic-scroll bounce does not read as new content.
+When the screen stops changing, capture stops immediately and the unchanged
+frame is **not saved**. A near-identical frame (a bounce in flight) triggers one
+extra settle-and-recheck before it is judged.
+
+Measured separation on synthetic lists: jitter ≈ 0.0, a real new page ≈ 27
+(mean per-pixel difference on a 64×64 downscale).
+
+## How far one scroll really goes
+
+`pyautogui.scroll()` takes wheel *units*, not pixels — and its own source warns
+that values outside roughly ±10 per event have application-dependent results. A
+single huge event gets merged into one gesture or truncated, so asking for a
+large distance in one call simply does not work. Measured on a real mini
+program: a request for half a screen moved the list by 52 px.
+
+Instead the tool sends small bursts (≤10 units each), measures how far the page
+actually moved from the screenshots, and tops up until the requested distance is
+covered. Each page logs what it asked for and what it actually got:
+
+```
+  change vs previous page: 16.12
+  wheel: asked 305pt, moved 298pt (59 units)
+```
+
+If a burst produces no movement at all, that is either the end of the list or an
+app ignoring synthetic events — both are reported in the log.
 
 ## Configuration
 
@@ -107,6 +123,25 @@ Works as-is. On Linux, `scrot` or `gnome-screenshot` may be needed for
 Overlap matters: a higher overlap produces more pages (more tokens) but loses
 fewer rows that straddle a page boundary. 50% is a safe default.
 
+`prompt_template.md` is the whole extraction contract — swap the field list for
+your own use case and nothing else has to change.
+
+## Troubleshooting
+
+| Symptom | Cause |
+|---|---|
+| It scrolls once and stops at page 1 | Accessibility permission not granted, or the scroll mode does not suit the app — try the other one |
+| Keeps screenshotting past the end | Only possible if the screen genuinely keeps changing (a spinner, a clock inside the region). Move the region to exclude it |
+| Nothing is captured (black or wrong area) | Screen Recording permission, or the region changed size since calibration — recalibrate |
+| Pages look duplicated | Overlap is too high, or a large scroll bounce at the very bottom kept one extra frame |
+
+The capture loop can be simulated without a display, which is also the fastest
+way to check a change to the stop logic:
+
+```bash
+python tests/test_capture_loop.py
+```
+
 ## Limitations
 
 Honest list of what this does *not* do:
@@ -115,10 +150,8 @@ Honest list of what this does *not* do:
   model's. Small text and dense layouts still trip it up.
 - **No dedup across pages.** Overlap means the same item can appear on two
   pages; the prompt tells the model to list everything, so dedupe afterwards.
-  A large scroll bounce at the very bottom can leave one extra duplicate frame —
-  kept on purpose, because dropping a real page would be worse.
-- **Fixed region.** If the list's position changes while scrolling (e.g. a
-  sticky header that resizes), recalibrate.
+- **Fixed region.** If the list's position changes while scrolling (a sticky
+  header that resizes, a banner that appears), recalibrate.
 - **You must watch it once.** `pyautogui` FailSafe aborts if you throw the
   mouse into a screen corner — that is the intended escape hatch.
 
