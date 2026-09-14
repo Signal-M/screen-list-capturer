@@ -23,15 +23,10 @@
 
 ## 演示
 
-<p align="center">
-  <a href="https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4">
-    <img src="media/demo_cover.png" alt="点击播放演示视频" width="880">
-  </a>
-  <br><b>▶ 点击封面播放演示视频</b>（1 分 09 秒，MP4，7.7 MB）
-</p>
+![演示：标定区域 → 自动滚动逐屏截图 → 到底自动停止](media/demo.gif)
 
-在 macOS 上对着一个没有接口的小程序列表实录。画面里能看到：标定区域 → 自动滚动、
-逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
+在 macOS 上对着一个没有接口的小程序列表实录（1 分 09 秒）。画面里能看到：标定区域 →
+自动滚动、逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
 
 日志最后两行是关键：
 
@@ -39,6 +34,9 @@
 滚轮请求 490px / 实滚 0px（一直无位移）  -> 视为已到达列表末端
 已保存 7 页 -> page_007.png
 ```
+
+> 上面这段 GIF 压到了 720px / 8fps，界面小字会糊。想要逐字可读的原画质：
+> [▶ 完整版 MP4（7.7 MB）](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
 
 ---
 

@@ -24,17 +24,12 @@ won't let you export, building a test fixture that actually looks like productio
 
 ## Demo
 
-<p align="center">
-  <a href="https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4">
-    <img src="media/demo_cover.png" alt="Click to play the demo video" width="880">
-  </a>
-  <br><b>▶ Click the cover to play the demo</b> (1:09, MP4, 7.7 MB)
-</p>
+![Demo: calibrate the region → auto-scroll and screenshot → stop at the end of the list](media/demo.gif)
 
-Recorded on macOS against a list inside a mini program that offers no API. What
-you see: region calibration → automatic scrolling and one screenshot per screen
-→ the tool detecting that the list has stopped moving and **stopping on its own**
-instead of shooting the same bottom frame forever.
+Recorded on macOS against a list inside a mini program that offers no API (1:09).
+What you see: region calibration → automatic scrolling and one screenshot per
+screen → the tool detecting that the list has stopped moving and **stopping on
+its own** instead of shooting the same bottom frame forever.
 
 The last lines of the log are the interesting part:
 
@@ -42,6 +37,9 @@ The last lines of the log are the interesting part:
 wheel: asked 490pt, moved 0pt  -> treated as end of list
 saved 7 pages -> page_007.png
 ```
+
+> The GIF above is 720px / 8fps, so small UI text is blurry. For a
+> pixel-readable original: [▶ full MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
 
 ## How it works
 
