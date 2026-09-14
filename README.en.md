@@ -24,9 +24,7 @@ won't let you export, building a test fixture that actually looks like productio
 
 ## Demo
 
-[▶ Watch the demo (1:09, MP4, 7.7 MB)](./media/demo.mp4)
-
-<video src="https://github.com/m2290526022-boop/screen-list-capturer/raw/main/media/demo.mp4" controls muted width="100%"></video>
+[▶ Watch the demo (1:09, MP4, 7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/media/demo.mp4)
 
 Recorded on macOS against a list inside a mini program that offers no API. What
 you see: region calibration → automatic scrolling and one screenshot per screen
