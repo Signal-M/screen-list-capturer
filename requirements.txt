@@ -1,0 +1,10 @@
+# Runtime dependencies for screen_list_capturer.py
+pyautogui>=0.9.54
+pillow>=10.0.0
+
+# Needed by csv_to_xlsx.py (converting the LLM's CSV into a spreadsheet)
+openpyxl>=3.1.0
+
+# tkinter ships with most Python installs. If your build lacks it:
+#   macOS  -> install Python from python.org, or `brew install python-tk`
+#   Debian -> `sudo apt-get install python3-tk`
