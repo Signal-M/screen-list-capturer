@@ -24,7 +24,7 @@ won't let you export, building a test fixture that actually looks like productio
 
 ## Demo
 
-<a href="https://m2290526022-boop.github.io/screen-list-capturer/">
+<a href="https://signal-m.github.io/screen-list-capturer/">
   <img src="media/demo.gif" alt="Demo: calibrate the region → auto-scroll and screenshot → stop at the end of the list" width="900">
 </a>
 
@@ -43,8 +43,8 @@ saved 7 pages -> page_007.png
 > Click the GIF above to open the demo page — **it plays in the browser, no
 > download** (seek, playback speed, fullscreen). The GIF itself is 720px / 8fps,
 > so small UI text is blurry; switch to the online player for detail:
-> **[▶ Demo page](https://m2290526022-boop.github.io/screen-list-capturer/)**
-> | [download MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
+> **[▶ Demo page](https://signal-m.github.io/screen-list-capturer/)**
+> | [download MP4 (7.7 MB)](https://github.com/Signal-M/screen-list-capturer/blob/main/docs/demo.mp4)
 
 ## How it works
 
@@ -84,7 +84,7 @@ scroll through, this can capture.
 ## Install
 
 ```bash
-git clone https://github.com/m2290526022-boop/screen-list-capturer.git
+git clone https://github.com/Signal-M/screen-list-capturer.git
 cd screen-list-capturer
 pip install -r requirements.txt
 python screen_list_capturer.py

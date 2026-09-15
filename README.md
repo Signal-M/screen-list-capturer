@@ -11,8 +11,8 @@
 ```
 
 ## 演示
-> **[▶ Demo page](https://m2290526022-boop.github.io/screen-list-capturer/)**
-> | [download MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
+> **[▶ Demo page](https://signal-m.github.io/screen-list-capturer/)**
+> | [download MP4 (7.7 MB)](https://github.com/Signal-M/screen-list-capturer/blob/main/docs/demo.mp4)
 
 在 macOS 上对着一个没有接口的小程序列表实录（1 分 09 秒）。画面里能看到：标定区域 →
 自动滚动、逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
@@ -27,7 +27,7 @@
 ## 安装
 
 ```bash
-git clone https://github.com/m2290526022-boop/screen-list-capturer.git
+git clone https://github.com/Signal-M/screen-list-capturer.git
 cd screen-list-capturer
 pip install -r requirements.txt
 python screen_list_capturer.py
