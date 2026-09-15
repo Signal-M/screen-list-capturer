@@ -11,8 +11,8 @@
 ```
 
 ## 演示
-视频版**[▶ 演示页](https://m2290526022-boop.github.io/screen-list-capturer/)**
-![演示：标定区域 → 自动滚动逐屏截图 → 到底自动停止](media/demo.gif)
+> **[▶ Demo page](https://m2290526022-boop.github.io/screen-list-capturer/)**
+> | [download MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
 
 在 macOS 上对着一个没有接口的小程序列表实录（1 分 09 秒）。画面里能看到：标定区域 →
 自动滚动、逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
