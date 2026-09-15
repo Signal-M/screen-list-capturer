@@ -24,7 +24,9 @@ won't let you export, building a test fixture that actually looks like productio
 
 ## Demo
 
-![Demo: calibrate the region → auto-scroll and screenshot → stop at the end of the list](media/demo.gif)
+<a href="https://m2290526022-boop.github.io/screen-list-capturer/">
+  <img src="media/demo.gif" alt="Demo: calibrate the region → auto-scroll and screenshot → stop at the end of the list" width="900">
+</a>
 
 Recorded on macOS against a list inside a mini program that offers no API (1:09).
 What you see: region calibration → automatic scrolling and one screenshot per
@@ -38,8 +40,9 @@ wheel: asked 490pt, moved 0pt  -> treated as end of list
 saved 7 pages -> page_007.png
 ```
 
-> The GIF above is 720px / 8fps, so small UI text is blurry. The original plays
-> straight in the browser (seek, speed, fullscreen):
+> Click the GIF above to open the demo page — **it plays in the browser, no
+> download** (seek, playback speed, fullscreen). The GIF itself is 720px / 8fps,
+> so small UI text is blurry; switch to the online player for detail:
 > **[▶ Demo page](https://m2290526022-boop.github.io/screen-list-capturer/)**
 > | [download MP4 (7.7 MB)](https://github.com/m2290526022-boop/screen-list-capturer/blob/main/docs/demo.mp4)
 
