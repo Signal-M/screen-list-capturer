@@ -2,20 +2,23 @@
 
 **零爬虫做竞品数据抓取**
 
-**问题场景
-**做网球约球小程序时，需采集网球场地信息。公开的地图api提供商并无网球场相关的详细信息，从竞品逐个人工收集成本极高。
+**问题场景：** 做网球约球小程序时，需采集网球场地信息。公开的地图 API 并不提供场地的详细信息，从竞品逐个人工收集成本极高。
 
-**设计思路：
-**屏幕上的列表  ->  自动化截图 ->  pages/page_001.png ...  ->  pages.zip + LLM_PROMPT.md  ->  CSV  
-
-```
+**设计思路：** 屏幕上的列表 → 自动化截图 → `pages/page_001.png` … → `pages.zip` + `LLM_PROMPT.md` → CSV
 
 ## 演示
-> **[▶ Demo page](https://signal-m.github.io/screen-list-capturer/)**
-> | [download MP4 (7.7 MB)](https://github.com/Signal-M/screen-list-capturer/blob/main/docs/demo.mp4)
+
+<a href="https://signal-m.github.io/screen-list-capturer/">
+  <img src="media/demo.gif" alt="演示：标定区域 → 自动滚动逐屏截图 → 判断列表已到底端后自动停止" width="900">
+</a>
+
+> **▶ [在浏览器内直接播放高清版](https://signal-m.github.io/screen-list-capturer/)**（可拖进度条 / 变速 / 全屏，**无需下载**）
+> | [下载 MP4（7.7 MB）](https://github.com/Signal-M/screen-list-capturer/blob/main/docs/demo.mp4)
 
 在 macOS 上对着一个没有接口的小程序列表实录（1 分 09 秒）。画面里能看到：标定区域 →
 自动滚动、逐屏截图 → 工具判断列表已经不再移动，**自己停下来**，而不是对着底部那一帧一直拍。
+
+上面的 GIF 是 720px / 8fps，界面小字会有点糊；想看清细节请用在线播放页。
 
 ## 工作原理
 1. **标定** —— 倒计时引导你点出列表的左上角和右下角。屏幕上其他东西都不影响。
